@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'home_page.dart';
+import 'todos_page.dart';
 import 'store/todos.dart';
 
 void main() => runApp(MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       ),
       home: ChangeNotifierProvider(
         builder: (context) => Todos(),
-        child: HomePage(),
+        child: TodosPage(),
       ),
     );
   }

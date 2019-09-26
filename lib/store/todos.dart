@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class Todo {
   bool finish;
-  final String thing;
+  String thing;
 
   Todo({
     @required this.thing,
@@ -22,20 +22,39 @@ class Todos extends ChangeNotifier {
     return [..._items];
   }
 
+  get finishTodos {
+    return _items.where((todo) => todo.finish);
+  }
+
+  void refresh() {
+    notifyListeners();
+  }
+
   void addTodo(Todo todo) {
     _items.insert(0, todo);
-    notifyListeners();
+
+    refresh();
   }
 
   void removeTodo(int index) {
     _items.removeAt(index);
-    notifyListeners();
+
+    refresh();
+  }
+
+  void editTodo(int index, String newThing, bool isFinish) {
+    Todo todo = _items[index];
+    todo.thing = newThing;
+    todo.finish = isFinish;
+
+    refresh();
   }
 
   void toggleFinish(int index) {
     final todo = _items[index];
     todo.finish = !todo.finish;
-    notifyListeners();
+
+    refresh();
   }
 
   bool isTodoExist(String thing) {

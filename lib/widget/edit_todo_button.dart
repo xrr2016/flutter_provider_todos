@@ -3,35 +3,40 @@ import 'package:provider/provider.dart';
 
 import '../store/todos.dart';
 
-class AddTodoButton extends StatefulWidget {
+class EditTodoButton extends StatefulWidget {
+  final todoIndex;
+
+  const EditTodoButton({Key key, this.todoIndex}) : super(key: key);
+
   @override
-  _AddTodoButtonState createState() => _AddTodoButtonState();
+  _EditTodoButtonState createState() => _EditTodoButtonState();
 }
 
-class _AddTodoButtonState extends State<AddTodoButton> {
+class _EditTodoButtonState extends State<EditTodoButton> {
   final _formKey = GlobalKey<FormState>();
-  final _controller = TextEditingController();
 
   @override
   void dispose() {
-    _formKey.currentState.dispose();
-    _controller.dispose();
+    _formKey?.currentState?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<Todos>(
-      builder: (_, todos, child) {
-        return FloatingActionButton(
-          child: Icon(Icons.add),
+      builder: (context, todos, child) {
+        final todoIndex = widget.todoIndex;
+        final Todo todo = todos.items[todoIndex];
+
+        return IconButton(
+          color: Colors.blue,
+          icon: Icon(Icons.edit),
           onPressed: () {
-            print('add todo');
             return showDialog(
               context: context,
-              builder: (BuildContext _) {
+              builder: (context) {
                 return SimpleDialog(
-                  title: Text('添加 Todo'),
+                  title: Text('编辑 Todo'),
                   contentPadding: const EdgeInsets.all(24.0),
                   children: <Widget>[
                     Form(
@@ -39,25 +44,29 @@ class _AddTodoButtonState extends State<AddTodoButton> {
                       child: Column(
                         children: <Widget>[
                           TextFormField(
-                            autofocus: true,
+                            autofocus: false,
                             autovalidate: false,
-                            controller: _controller,
-                            keyboardType: TextInputType.text,
+                            initialValue: todo.thing,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: '输入你想做的事',
                             ),
+                            onChanged: (val) {
+                              todo.thing = val;
+                            },
                             validator: (val) {
                               if (val.isEmpty) {
                                 return '想做的事不能为空';
                               }
-
-                              bool isExist = todos.isTodoExist(val);
-
-                              if (isExist) {
-                                return '这件事情已经存在了';
-                              }
                               return null;
+                            },
+                          ),
+                          SizedBox(height: 20),
+                          SwitchListTile(
+                            title: const Text('是否完成'),
+                            value: todo.finish,
+                            onChanged: (bool value) {
+                              todo.finish = value;
                             },
                           ),
                           SizedBox(height: 20),
@@ -66,9 +75,7 @@ class _AddTodoButtonState extends State<AddTodoButton> {
                             children: <Widget>[
                               FlatButton(
                                 child: Text('取消'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
+                                onPressed: () => Navigator.pop(context),
                               ),
                               RaisedButton(
                                 child: Text(
@@ -84,14 +91,13 @@ class _AddTodoButtonState extends State<AddTodoButton> {
                                     return;
                                   }
 
-                                  final thing = _controller.value.text;
-
-                                  todos.addTodo(Todo(
-                                    thing: thing,
-                                    finish: false,
-                                  ));
-                                  _controller.clear();
                                   Navigator.pop(context);
+
+                                  todos.editTodo(
+                                    todoIndex,
+                                    todo.thing,
+                                    todo.finish,
+                                  );
                                 },
                               )
                             ],
