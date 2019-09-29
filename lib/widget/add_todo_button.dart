@@ -23,6 +23,26 @@ class _AddTodoButtonState extends State<AddTodoButton> {
   Widget build(BuildContext context) {
     return Consumer<Todos>(
       builder: (_, todos, child) {
+        _addTodo() async {
+          final isValid = _formKey.currentState.validate();
+
+          if (!isValid) {
+            return;
+          }
+
+          final thing = _controller.value.text;
+
+          try {
+            await todos.addTodo(thing);
+            _controller.clear();
+            Navigator.pop(context);
+          } catch (e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(content: Text('新增代办失败了，请重试。')),
+            );
+          }
+        }
+
         return FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
@@ -76,24 +96,8 @@ class _AddTodoButtonState extends State<AddTodoButton> {
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 color: Theme.of(context).primaryColor,
-                                onPressed: () {
-                                  final isValid =
-                                      _formKey.currentState.validate();
-
-                                  if (!isValid) {
-                                    return;
-                                  }
-
-                                  final thing = _controller.value.text;
-
-                                  todos.addTodo(Todo(
-                                    thing: thing,
-                                    finish: false,
-                                  ));
-                                  _controller.clear();
-                                  Navigator.pop(context);
-                                },
-                              )
+                                onPressed: _addTodo,
+                              ),
                             ],
                           ),
                         ],

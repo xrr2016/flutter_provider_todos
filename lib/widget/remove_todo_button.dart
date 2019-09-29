@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../model/todo.dart';
 import '../store/todos.dart';
 
 class RemoveTodoButton extends StatelessWidget {
@@ -33,8 +34,8 @@ class RemoveTodoButton extends StatelessWidget {
                   ),
                   FlatButton(
                     child: Text('确认'),
-                    onPressed: () {
-                      todos.removeTodo(todoIndex);
+                    onPressed: () async {
+                      await todos.removeTodo(todoIndex);
                       Navigator.pop(context);
                     },
                   ),

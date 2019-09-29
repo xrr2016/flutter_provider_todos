@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../model/todo.dart';
 import '../store/todos.dart';
 
 class EditTodoButton extends StatefulWidget {
@@ -34,7 +35,7 @@ class _EditTodoButtonState extends State<EditTodoButton> {
           onPressed: () {
             return showDialog(
               context: context,
-              builder: (context) {
+              builder: (_) {
                 return SimpleDialog(
                   title: Text('编辑 Todo'),
                   contentPadding: const EdgeInsets.all(24.0),
@@ -83,7 +84,7 @@ class _EditTodoButtonState extends State<EditTodoButton> {
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 color: Theme.of(context).primaryColor,
-                                onPressed: () {
+                                onPressed: () async {
                                   final isValid =
                                       _formKey.currentState.validate();
 
@@ -91,13 +92,18 @@ class _EditTodoButtonState extends State<EditTodoButton> {
                                     return;
                                   }
 
-                                  Navigator.pop(context);
-
-                                  todos.editTodo(
-                                    todoIndex,
-                                    todo.thing,
-                                    todo.finish,
-                                  );
+                                  try {
+                                    await todos.editTodo(
+                                      todoIndex,
+                                      todo.thing,
+                                      todo.finish,
+                                    );
+                                    Navigator.pop(context);
+                                  } catch (e) {
+                                    Scaffold.of(context).showSnackBar(
+                                      SnackBar(content: Text('修改代办失败了，请重试。')),
+                                    );
+                                  }
                                 },
                               )
                             ],

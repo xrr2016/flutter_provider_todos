@@ -11,39 +11,75 @@ class TodosPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Flutter Provider Todos')),
-      body: Consumer<Todos>(
-        builder: (ctx, todos, child) {
-          List<Todo> items = todos.items;
+      body: FutureBuilder(
+        future: Provider.of<Todos>(context).getTodos(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              return Text('Press button to start.');
+            case ConnectionState.active:
+            case ConnectionState.waiting:
+              return Center(child: CircularProgressIndicator());
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                print(snapshot.error);
+                return Center(
+                  child: Text(
+                    '出错了，请重试',
+                    style: TextStyle(fontSize: 18.0, color: Colors.red),
+                  ),
+                );
+              }
 
-          return ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (_, index) => Column(
-              children: <Widget>[
-                ListTile(
-                  title: Text(
-                    items[index].thing,
-                    style: TextStyle(
-                      color: items[index].finish ? Colors.green : Colors.grey,
-                    ),
+              List items = snapshot.data;
+
+              if (items == null) {
+                return Center(
+                  child: Text(
+                    '还没有代办事项，快去添加吧',
+                    style: TextStyle(fontSize: 18.0),
                   ),
-                  trailing: Container(
-                    width: 150,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                );
+              }
+
+              return ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (_, index) {
+                    return Column(
                       children: <Widget>[
-                        EditTodoButton(todoIndex: index),
-                        RemoveTodoButton(todoIndex: index),
+                        ListTile(
+                          title: Text(
+                            items[index].thing,
+                            style: TextStyle(
+                              color: items[index].finish
+                                  ? Colors.green
+                                  : Colors.grey,
+                            ),
+                          ),
+                          trailing: Container(
+                            width: 150,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                EditTodoButton(todoIndex: index),
+                                RemoveTodoButton(todoIndex: index),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Divider(),
                       ],
-                    ),
-                  ),
-                ),
-                Divider(),
-              ],
-            ),
-          );
+                    );
+                  });
+          }
+          return null;
         },
       ),
-      floatingActionButton: AddTodoButton(),
+      floatingActionButton: Consumer<Todos>(
+        builder: (_, todos, child) {
+          return AddTodoButton();
+        },
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

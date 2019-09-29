@@ -1,53 +1,82 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-class Todo {
-  bool finish;
-  String thing;
-
-  Todo({
-    @required this.thing,
-    this.finish = false,
-  });
-}
+import '../request.dart';
+import '../model/todo.dart';
 
 class Todos extends ChangeNotifier {
-  List<Todo> _items = [
-    Todo(thing: 'Play lol', finish: true),
-    Todo(thing: 'Learn flutter', finish: false),
-    Todo(thing: 'Read book', finish: false),
-    Todo(thing: 'Watch anime', finish: false),
-  ];
+  List<Todo> _items = [];
+
+  Dio _dio = craeteDio();
 
   get items {
     return [..._items];
-  }
-
-  get finishTodos {
-    return _items.where((todo) => todo.finish);
   }
 
   void refresh() {
     notifyListeners();
   }
 
-  void addTodo(Todo todo) {
-    _items.insert(0, todo);
+  Future<List> getTodos() async {
+    try {
+      Response response = await _dio.get('/todos');
 
-    refresh();
+      final list = response.data as List;
+      _items = List<Todo>.from(list.map((i) => Todo.fromJson(i)).toList());
+
+      return items;
+    } on DioError catch (err) {
+      throw err;
+    }
   }
 
-  void removeTodo(int index) {
-    _items.removeAt(index);
+  Future addTodo(String thing) async {
+    try {
+      Response response = await _dio.post('/todos', data: {
+        "thing": thing,
+        "finish": false,
+      });
 
-    refresh();
+      Todo todo = Todo(
+        thing: thing,
+        id: response.data["_id"],
+        finish: response.data["finish"],
+      );
+
+      _items.insert(0, todo);
+      refresh();
+    } on DioError catch (err) {
+      throw err;
+    }
   }
 
-  void editTodo(int index, String newThing, bool isFinish) {
-    Todo todo = _items[index];
-    todo.thing = newThing;
-    todo.finish = isFinish;
+  Future removeTodo(int index) async {
+    try {
+      String todoId = _items[index].id;
+      await _dio.delete("/todos/$todoId");
+      _items.removeAt(index);
+      refresh();
+    } catch (err) {
+      throw err;
+    }
+  }
 
-    refresh();
+  Future editTodo(int index, String thing, bool finish) async {
+    String todoId = _items[index].id;
+
+    try {
+      await _dio.put("/todos/$todoId", data: {
+        "thing": thing,
+        "finish": finish,
+      });
+
+      Todo todo = _items[index];
+      todo.thing = thing;
+      todo.finish = finish;
+      refresh();
+    } catch (e) {
+      throw e;
+    }
   }
 
   void toggleFinish(int index) {
