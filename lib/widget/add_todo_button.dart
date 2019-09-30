@@ -34,8 +34,8 @@ class _AddTodoButtonState extends State<AddTodoButton> {
 
           try {
             await todos.addTodo(thing);
-            _controller.clear();
             Navigator.pop(context);
+            _controller.clear();
           } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(content: Text('新增代办失败了，请重试。')),
